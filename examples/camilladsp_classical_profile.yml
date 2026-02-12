@@ -1,0 +1,94 @@
+---
+# CamillaDSP Configuration - Classical Music Profile
+# Optimized for orchestral and acoustic music
+# Part of Gregersen Audio System
+
+devices:
+  samplerate: 44100
+  chunksize: 1024
+  capture:
+    type: File
+    channels: 2
+    filename: "/tmp/shairport-sync-audio"
+    format: S16LE
+    skip_bytes: 0
+    read_bytes: 0
+  playback:
+    type: File
+    channels: 2
+    filename: "/tmp/snapfifo_front_left"
+    format: S16LE
+
+mixers:
+  main_volume:
+    type: Volume
+    channels: 2
+    ramp_time: 200
+
+filters:
+  # Gentle subsonic filter
+  subsonic_filter:
+    type: Biquad
+    parameters:
+      type: Highpass
+      freq: 25
+      q: 0.7
+  
+  # Very subtle bass shelf
+  bass_shelf:
+    type: Biquad
+    parameters:
+      type: Lowshelf
+      freq: 100
+      slope: 6
+      gain: -1.0
+  
+  # Preserve natural midrange
+  string_warmth:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 500
+      q: 0.8
+      gain: 0.5
+  
+  # Enhance woodwind clarity
+  woodwind_clarity:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 2500
+      q: 1.0
+      gain: 1.0
+  
+  # Gentle air extension for hall ambience
+  hall_air:
+    type: Biquad
+    parameters:
+      type: Highshelf
+      freq: 8000
+      slope: 6
+      gain: 1.5
+
+pipeline:
+  - type: Mixer
+    name: main_volume
+    description: "Main Volume Control"
+  - type: Filter
+    channel: 0
+    names:
+      - subsonic_filter
+      - bass_shelf
+      - string_warmth
+      - woodwind_clarity
+      - hall_air
+    description: "Left Channel - Classical EQ"
+  - type: Filter
+    channel: 1
+    names:
+      - subsonic_filter
+      - bass_shelf
+      - string_warmth
+      - woodwind_clarity
+      - hall_air
+    description: "Right Channel - Classical EQ"
