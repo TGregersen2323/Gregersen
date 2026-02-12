@@ -1,0 +1,23 @@
+[Unit]
+Description=CamillaDSP Audio Processor - %i Zone
+Documentation=https://github.com/HEnquist/camilladsp
+After=network.target sound.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/camilladsp -p 1234%i /etc/camilladsp/camilladsp_%i.yml
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/tmp
+
+[Install]
+WantedBy=multi-user.target

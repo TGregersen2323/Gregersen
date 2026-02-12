@@ -1,0 +1,131 @@
+version: '3.8'
+
+# Gregersen Multi-Room Audio System - Docker Compose
+# Alternative deployment using containers
+
+services:
+  # Shairport-sync - AirPlay Receiver
+  shairport-sync:
+    image: mikebrady/shairport-sync:latest
+    container_name: gregersen-shairport
+    network_mode: host
+    restart: unless-stopped
+    devices:
+      - /dev/snd:/dev/snd
+    volumes:
+      - ./config/shairport-sync.conf:/etc/shairport-sync.conf:ro
+      - audio-pipes:/tmp
+    environment:
+      - PULSE_SERVER=unix:/run/user/1000/pulse/native
+    cap_add:
+      - NET_ADMIN
+      - SYS_NICE
+    command: ["-c", "/etc/shairport-sync.conf"]
+
+  # CamillaDSP - Front Left Zone
+  camilladsp-front-left:
+    image: henquist/camilladsp:latest
+    container_name: gregersen-dsp-front-left
+    restart: unless-stopped
+    volumes:
+      - ./config/camilladsp_front_left.yml:/config/camilladsp.yml:ro
+      - audio-pipes:/tmp
+    ports:
+      - "12340:1234"
+    command: ["-p", "1234", "/config/camilladsp.yml"]
+    depends_on:
+      - shairport-sync
+
+  # CamillaDSP - Front Right Zone
+  camilladsp-front-right:
+    image: henquist/camilladsp:latest
+    container_name: gregersen-dsp-front-right
+    restart: unless-stopped
+    volumes:
+      - ./config/camilladsp_front_right.yml:/config/camilladsp.yml:ro
+      - audio-pipes:/tmp
+    ports:
+      - "12341:1234"
+    command: ["-p", "1234", "/config/camilladsp.yml"]
+    depends_on:
+      - shairport-sync
+
+  # CamillaDSP - Back Left Zone
+  camilladsp-back-left:
+    image: henquist/camilladsp:latest
+    container_name: gregersen-dsp-back-left
+    restart: unless-stopped
+    volumes:
+      - ./config/camilladsp_back_left.yml:/config/camilladsp.yml:ro
+      - audio-pipes:/tmp
+    ports:
+      - "12342:1234"
+    command: ["-p", "1234", "/config/camilladsp.yml"]
+    depends_on:
+      - shairport-sync
+
+  # CamillaDSP - Back Right Zone
+  camilladsp-back-right:
+    image: henquist/camilladsp:latest
+    container_name: gregersen-dsp-back-right
+    restart: unless-stopped
+    volumes:
+      - ./config/camilladsp_back_right.yml:/config/camilladsp.yml:ro
+      - audio-pipes:/tmp
+    ports:
+      - "12343:1234"
+    command: ["-p", "1234", "/config/camilladsp.yml"]
+    depends_on:
+      - shairport-sync
+
+  # Snapcast Server - Multi-room Distribution
+  snapserver:
+    image: badaix/snapserver:latest
+    container_name: gregersen-snapserver
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./config/snapserver.conf:/etc/snapserver.conf:ro
+      - audio-pipes:/tmp
+    ports:
+      - "1704:1704"
+      - "1705:1705"
+      - "1780:1780"
+    command: ["-c", "/etc/snapserver.conf"]
+    depends_on:
+      - camilladsp-front-left
+      - camilladsp-front-right
+      - camilladsp-back-left
+      - camilladsp-back-right
+
+  # CamillaDSP GUI - Web Interface
+  camilladsp-gui:
+    image: python:3.11-slim
+    container_name: gregersen-dsp-gui
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./config:/config:ro
+    ports:
+      - "5000:5000"
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache-dir pycamilladsp pycamilladsp-plot &&
+             python -m pycamilladsp_plot -p 5000 -a 0.0.0.0"
+    depends_on:
+      - camilladsp-front-left
+      - camilladsp-front-right
+      - camilladsp-back-left
+      - camilladsp-back-right
+
+volumes:
+  audio-pipes:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=10m
+
+networks:
+  default:
+    name: gregersen-audio-network

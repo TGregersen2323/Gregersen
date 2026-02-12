@@ -1,0 +1,95 @@
+---
+# CamillaDSP Configuration - Rock Music Profile
+# Optimized for rock, metal, and high-energy music
+# Part of Gregersen Audio System
+
+devices:
+  samplerate: 44100
+  chunksize: 1024
+  capture:
+    type: File
+    channels: 2
+    filename: "/tmp/shairport-sync-audio"
+    format: S16LE
+    skip_bytes: 0
+    read_bytes: 0
+  playback:
+    type: File
+    channels: 2
+    filename: "/tmp/snapfifo_front_left"
+    format: S16LE
+
+mixers:
+  main_volume:
+    type: Volume
+    channels: 2
+    ramp_time: 200
+
+filters:
+  # Deep bass boost for kick drums
+  sub_bass:
+    type: Biquad
+    parameters:
+      type: Lowshelf
+      freq: 80
+      slope: 6
+      gain: 4.0
+  
+  # Reduce muddiness in low-mids
+  mud_cut:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 300
+      q: 1.2
+      gain: -2.5
+  
+  # Enhance guitar presence
+  guitar_presence:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 1500
+      q: 1.0
+      gain: 2.5
+  
+  # Boost vocal clarity and cymbal attack
+  vocal_clarity:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 3500
+      q: 1.5
+      gain: 3.5
+  
+  # Air and shimmer for cymbals
+  air_boost:
+    type: Biquad
+    parameters:
+      type: Highshelf
+      freq: 10000
+      slope: 6
+      gain: 2.0
+
+pipeline:
+  - type: Mixer
+    name: main_volume
+    description: "Main Volume Control"
+  - type: Filter
+    channel: 0
+    names:
+      - sub_bass
+      - mud_cut
+      - guitar_presence
+      - vocal_clarity
+      - air_boost
+    description: "Left Channel - Rock EQ"
+  - type: Filter
+    channel: 1
+    names:
+      - sub_bass
+      - mud_cut
+      - guitar_presence
+      - vocal_clarity
+      - air_boost
+    description: "Right Channel - Rock EQ"
