@@ -6,7 +6,6 @@ This directory contains example configurations for advanced use cases.
 
 - `camilladsp_rock_profile.yml` - EQ profile optimized for rock music
 - `camilladsp_classical_profile.yml` - EQ profile for classical music
-- `camilladsp_loudness.yml` - Configuration with loudness normalization
 - `snapserver_8zones.conf` - Extended configuration for 8 zones
 - `systemd_override_example.conf` - Systemd service customization example
 

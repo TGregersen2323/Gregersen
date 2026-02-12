@@ -100,7 +100,7 @@ rm camilladsp.tar.gz
 # Install CamillaDSP GUI
 echo "[6/8] Installing CamillaDSP GUI (pyCamillaDSP)..."
 python3 -m pip install --upgrade pip
-python3 -m pip install camilladsp-plot pycamilladsp pycamilladsp-plot
+python3 -m pip install pycamilladsp pycamilladsp-plot
 
 # Create configuration directories
 echo "[7/8] Setting up configuration directories..."
