@@ -1,0 +1,94 @@
+---
+# CamillaDSP Configuration - Front Left Zone
+# Part of Gregersen Audio System
+
+devices:
+  samplerate: 44100
+  chunksize: 1024
+  capture:
+    type: File
+    channels: 2
+    filename: "/tmp/shairport-sync-audio"
+    format: S16LE
+    skip_bytes: 0
+    read_bytes: 0
+  playback:
+    type: File
+    channels: 2
+    filename: "/tmp/snapfifo_front_left"
+    format: S16LE
+
+mixers:
+  main_volume:
+    type: Volume
+    channels: 2
+    ramp_time: 200
+
+filters:
+  # Low shelf EQ at 100 Hz
+  low_shelf:
+    type: Biquad
+    parameters:
+      type: Lowshelf
+      freq: 100
+      slope: 6
+      gain: 0.0
+  
+  # Peaking EQ at 250 Hz
+  peak_250:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 250
+      q: 1.0
+      gain: 0.0
+  
+  # Peaking EQ at 1 kHz
+  peak_1k:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 1000
+      q: 1.0
+      gain: 0.0
+  
+  # Peaking EQ at 4 kHz
+  peak_4k:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 4000
+      q: 1.0
+      gain: 0.0
+  
+  # High shelf EQ at 8 kHz
+  high_shelf:
+    type: Biquad
+    parameters:
+      type: Highshelf
+      freq: 8000
+      slope: 6
+      gain: 0.0
+
+pipeline:
+  - type: Mixer
+    name: main_volume
+    description: "Main Volume Control"
+  - type: Filter
+    channel: 0
+    names:
+      - low_shelf
+      - peak_250
+      - peak_1k
+      - peak_4k
+      - high_shelf
+    description: "Left Channel EQ"
+  - type: Filter
+    channel: 1
+    names:
+      - low_shelf
+      - peak_250
+      - peak_1k
+      - peak_4k
+      - high_shelf
+    description: "Right Channel EQ"

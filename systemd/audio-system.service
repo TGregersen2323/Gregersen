@@ -1,0 +1,42 @@
+[Unit]
+Description=Gregersen Multi-Room Audio System
+Documentation=https://github.com/TGregersen2323/Gregersen
+After=network.target sound.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+
+# Create named pipes if they don't exist
+ExecStartPre=/bin/bash -c 'for pipe in /tmp/shairport-sync-audio /tmp/snapfifo_front_left /tmp/snapfifo_front_right /tmp/snapfifo_back_left /tmp/snapfifo_back_right; do [ -p "$pipe" ] || mkfifo "$pipe"; chmod 666 "$pipe"; done'
+
+# Start Shairport-sync (AirPlay receiver)
+ExecStartPre=/bin/systemctl start shairport-sync
+
+# Wait for Shairport-sync to be ready
+ExecStartPre=/bin/sleep 2
+
+# Start CamillaDSP instances for each zone
+ExecStartPre=/bin/systemctl start camilladsp@front_left
+ExecStartPre=/bin/systemctl start camilladsp@front_right
+ExecStartPre=/bin/systemctl start camilladsp@back_left
+ExecStartPre=/bin/systemctl start camilladsp@back_right
+
+# Wait for CamillaDSP instances to be ready
+ExecStartPre=/bin/sleep 2
+
+# Start Snapcast server
+ExecStart=/bin/systemctl start snapserver
+
+# Stop services in reverse order
+ExecStop=/bin/systemctl stop snapserver
+ExecStop=/bin/systemctl stop camilladsp@front_left
+ExecStop=/bin/systemctl stop camilladsp@front_right
+ExecStop=/bin/systemctl stop camilladsp@back_left
+ExecStop=/bin/systemctl stop camilladsp@back_right
+ExecStop=/bin/systemctl stop shairport-sync
+
+[Install]
+WantedBy=multi-user.target
