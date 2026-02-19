@@ -2,6 +2,16 @@
 
 Multi-room audio distribution system til Raspberry Pi.
 
+## Hurtig deployment (SSH)
+
+Kopiér og indsæt **hele** [`deploy.sh`](deploy.sh) direkte i din SSH-session på Raspberry Pi'en.  
+Scriptet laver automatisk backup af eksisterende konfigurationsfiler, skriver de optimerede filer
+og genstarter alle tre services.
+
+> **Kræver root** — log ind som `root` eller sæt `sudo bash` foran scriptet.
+
+---
+
 ## Signalvej
 
 ```
