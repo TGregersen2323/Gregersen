@@ -1,0 +1,47 @@
+# CamillaDSP configuration
+# Capture: ALSA Loopback (hw:Loopback,1,0) <- written by Shairport-Sync
+# Playback: named pipe -> Snapcast
+#
+# Fix: queuelimit set to 4 (not 1) — the main cause of audio crackling/dropouts.
+#      queuelimit=1 means only one chunk can be buffered ahead; any brief CPU spike
+#      causes an underrun. queuelimit=4 (~93ms headroom at 44100Hz/1024 samples)
+#      absorbs transient delays without audible glitches.
+# Fix: chunksize=1024 is kept (power-of-2 is efficient for DSP) and now matches
+#      the period_size=1024 set in shairport-sync.conf, eliminating ALSA period
+#      mismatches between the writer (Shairport) and the reader (CamillaDSP).
+
+devices:
+  samplerate: 44100
+  chunksize: 1024
+  queuelimit: 4
+  capture:
+    type: Alsa
+    channels: 2
+    device: "hw:Loopback,1,0"
+    format: S16LE
+  playback:
+    type: File
+    channels: 2
+    filename: "/tmp/snapfifo"
+    format: S16LE
+
+mixers:
+  stereo:
+    channels:
+      in: 2
+      out: 2
+    mapping:
+      - dest: 0
+        sources:
+          - channel: 0
+            gain: 0
+            inverted: false
+      - dest: 1
+        sources:
+          - channel: 1
+            gain: 0
+            inverted: false
+
+pipeline:
+  - type: Mixer
+    name: stereo
